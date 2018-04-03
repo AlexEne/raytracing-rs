@@ -20,6 +20,7 @@ use camera::Camera;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
+const SAMPLE_COUNT: usize = 100;
 
 fn color_at(ray: &Ray, world: &World) -> Vec3 {
     let mut rec = HitRecord::default();
@@ -33,7 +34,7 @@ fn color_at(ray: &Ray, world: &World) -> Vec3 {
 
 fn main() {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //RGBA
-    // let mut rng = rand::thread_rng();
+    let mut rng = rand::thread_rng();
     // let color_range = Range::new(0, 255);
     // let num = rand::thread_rng().gen_range(0, 100);
     // println!("{}", num);
@@ -58,10 +59,18 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         for y in 1..HEIGHT {
             for x in 0..WIDTH {
-                let u = (x as f32) / (WIDTH as f32);
-                let v = (y as f32) / (HEIGHT as f32);
-                let r = camera.get_ray(u, v);
-                let fcolor = color_at(&r, &world);
+
+                //100 Samples per pixel
+                let mut total = Vec3::default();
+                for _ in 0..SAMPLE_COUNT {
+                    let rx = rng.gen_range(0.0, 1.0);
+                    let ry = rng.gen_range(0.0, 1.0);
+                    let u = (x as f32 + rx) / (WIDTH as f32);
+                    let v = (y as f32 + ry) / (HEIGHT as f32);
+                    let r = camera.get_ray(u, v);
+                    total = total + color_at(&r, &world);
+                }
+                let fcolor = total / (SAMPLE_COUNT as f32);
                 let color_r = (fcolor.r() * 255.99) as u32;
                 let color_g = (fcolor.g() * 255.99) as u32;
                 let color_b = (fcolor.b() * 255.99) as u32;
