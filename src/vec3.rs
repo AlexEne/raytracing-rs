@@ -63,6 +63,10 @@ pub fn dot(first: &Vec3, other: &Vec3) -> f32 {
     first.x() * other.x() + first.y() * other.y() + first.z() * other.z()
 }
 
+pub fn reflect(v: &Vec3, &n: &Vec3) -> Vec3 {
+    *v - 2.0 * dot(v, &n) * n
+}
+
 impl Add for Vec3 {
     type Output = Vec3;
     fn add(self, other: Vec3) -> Vec3 {

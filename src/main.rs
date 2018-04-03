@@ -6,6 +6,7 @@ mod hittable;
 mod sphere;
 mod camera;
 mod world;
+mod material;
 
 use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
@@ -17,36 +18,38 @@ use sphere::Sphere;
 use hittable::{HitRecord, Hittable};
 use world::World;
 use camera::Camera;
+use material::MaterialHelper;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 50;
+const SAMPLE_COUNT: usize = 100;
 
-
-fn random_point_in_unit_sphere() -> Vec3 {
-    let mut rng = rand::thread_rng();
-    let mut done = false;
-    while true {
-        let rand_x = rng.gen_range(-1.0, 1.0);
-        let rand_y = rng.gen_range(-1.0, 1.0);
-        let rand_z = rng.gen_range(-1.0, 1.0);        
-        let v = Vec3::new(rand_x, rand_y, rand_z);
-        if v.square_length() < 1.0 {
-            return v;
-        }
-    }
-
-    unreachable!()
-}
-
-fn color_at(ray: &Ray, world: &World) -> Vec3 {
+fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
-    if world.hit(ray, 0.0001, 99999.0, &mut rec) {
-        let target = rec.p + rec.normal + random_point_in_unit_sphere();
-        return 0.5 * color_at(&Ray::new(rec.p, target-rec.p), world);
+    if world.hit(ray, 0.0001, std::f32::MAX, &mut rec) {
+        let mut scattered = Ray::new(Vec3::default(), Vec3::default());
+        let mut attenuation = Vec3::default();
+        let rec_c = HitRecord {
+            p: rec.p,
+            normal: rec.normal,
+            t: rec.t,
+            material: None,
+        };
+        if let Some(material) = rec.material {
+            if depth < 50
+                && material::scatter(&material, ray, &rec_c, &mut attenuation, &mut scattered)
+            {
+                return attenuation * color_at(&scattered, world, depth + 1);
+            } else {
+                return Vec3::default();
+            }
+        } else {
+            panic!("No material wtf!");
+        }
+    } else {
+        let t = 0.5 * (ray.dir().y() + 1.0);
+        (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
     }
-    let t = 0.5 * (ray.dir().y() + 1.0);
-    (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
 
 fn main() {
@@ -56,9 +59,34 @@ fn main() {
     // let num = rand::thread_rng().gen_range(0, 100);
     // println!("{}", num);
     let mut world = World::default();
-    world.add_object(Box::new(Sphere::new(Vec3::new(0.2, 0.0, -1.0), 0.5)));
-    world.add_object(Box::new(Sphere::new(Vec3::new(-0.8, -0.2, -2.0), 0.3)));
-    world.add_object(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(0.2, 0.0, -1.0),
+        0.5,
+        MaterialHelper::Lambertian {
+            albedo: Vec3::new(0.8, 0.3, 0.3),
+        },
+    )));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(-0.8, -0.2, -2.0),
+        0.3,
+        MaterialHelper::Lambertian {
+            albedo: Vec3::new(0.2, 0.4, 0.2),
+        },
+    )));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(1.2, 0.0, -1.0),
+        0.3,
+        MaterialHelper::Metal {
+            albedo: Vec3::new(0.2, 0.2, 0.3),
+        },
+    )));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(0.0, -100.5, -1.0),
+        100.0,
+        MaterialHelper::Lambertian {
+            albedo: Vec3::new(0.8, 0.8, 0.2),
+        },
+    )));
     let camera = Camera::new();
 
     let mut window = Window::new(
@@ -84,21 +112,18 @@ fn main() {
                 let u = (x as f32 + rx) / (WIDTH as f32);
                 let v = (y as f32 + ry) / (HEIGHT as f32);
                 let r = camera.get_ray(u, v);
-                total = total + color_at(&r, &world);
+                total = total + color_at(&r, &world, 0);
             }
             let fcolor = total / (SAMPLE_COUNT as f32);
             let fcolor = Vec3::new(fcolor.x().sqrt(), fcolor.y().sqrt(), fcolor.z().sqrt());
             let color_r = (fcolor.r() * 255.99) as u32;
             let color_g = (fcolor.g() * 255.99) as u32;
             let color_b = (fcolor.b() * 255.99) as u32;
-            buffer[((HEIGHT - y) * WIDTH + x) as usize] =
-                color_r << 16 | color_g << 8 | color_b;
+            buffer[((HEIGHT - y) * WIDTH + x) as usize] = color_r << 16 | color_g << 8 | color_b;
         }
     }
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-
-
         // We unwrap here as we want this code to exit if it fails.
         // Real applications may want to handle this in a different way
         window.update_with_buffer(&buffer).unwrap();

@@ -1,6 +1,8 @@
 use hittable::{Hittable, HitRecord};
 use std::boxed::Box;
 use ray::Ray;
+use material::MaterialHelper;
+use std;
 
 #[derive(Default)]
 pub struct World {
@@ -27,6 +29,7 @@ impl Hittable for World {
                     rec.t = tmp_rec.t;
                     rec.p = tmp_rec.p;
                     rec.normal = tmp_rec.normal;
+                    rec.material = tmp_rec.material;
                 }
             }
         }
