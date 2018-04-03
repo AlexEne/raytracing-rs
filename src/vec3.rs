@@ -1,7 +1,7 @@
 use std::ops::{Add, Div, Mul, Sub};
 use std::f32;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Vec3 {
     data: [f32; 3],
 }

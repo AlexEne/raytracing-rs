@@ -2,34 +2,41 @@ extern crate minifb;
 extern crate rand;
 mod vec3;
 mod ray;
+mod hittable;
+mod sphere;
 
+use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
 use minifb::{Key, Window, WindowOptions};
-use rand::Rng;
 use std::{thread, time};
 use vec3::Vec3;
 use ray::Ray;
+use sphere::Sphere;
+use hittable::HitRecord;
+use hittable::Hittable;
 
 const WIDTH: usize = 640;
-const HEIGHT: usize = 360;
+const HEIGHT: usize = 320;
 
 fn color_at(ray: &Ray) -> Vec3 {
-    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Vec3::new(0.0, 0.0, 1.0);
+    let t = hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray);
+    if t > 0.0 {
+        let mut n = ray.point_at(t) - Vec3::new(0.0, 0.0, -1.0);
+        n.normalize();
+        return 0.5 * Vec3::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
     }
-
     let t = 0.5 * (ray.dir().y() + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> bool {
-    let oc = r.origin() - *center;
-    let a = vec3::dot(&r.dir(), &r.dir());
-    let b = 2.0 * vec3::dot(&oc, &r.dir());
-    let c = vec3::dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-
-    discriminant >= 0.0
+fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> f32 {
+    let sphere = Sphere::new(*center, radius);
+    let mut hit_record = HitRecord::default();
+    if !sphere.hit(r, -1.0, 2.0, &mut hit_record) {
+        -1.0
+    } else {
+        hit_record.t
+    }
 }
 
 fn main() {
@@ -41,7 +48,7 @@ fn main() {
     let a: Vec3 = Vec3::new(0.0, 1.0, 2.0);
 
     let mut window = Window::new(
-        "Test - ESC to exit",
+        "Raytracing on a plane - ESC to exit",
         WIDTH,
         HEIGHT,
         WindowOptions::default(),
@@ -72,6 +79,6 @@ fn main() {
         // Real applications may want to handle this in a different way
         window.update_with_buffer(&buffer).unwrap();
 
-        thread::sleep(time::Duration::from_millis(6000));
+        thread::sleep(time::Duration::from_millis(1000));
     }
 }
