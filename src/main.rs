@@ -20,7 +20,7 @@ use camera::Camera;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 100;
+const SAMPLE_COUNT: usize = 50;
 
 
 fn random_point_in_unit_sphere() -> Vec3 {
@@ -41,7 +41,7 @@ fn random_point_in_unit_sphere() -> Vec3 {
 
 fn color_at(ray: &Ray, world: &World) -> Vec3 {
     let mut rec = HitRecord::default();
-    if world.hit(ray, 0.0, 100.0, &mut rec) {
+    if world.hit(ray, 0.0001, 99999.0, &mut rec) {
         let target = rec.p + rec.normal + random_point_in_unit_sphere();
         return 0.5 * color_at(&Ray::new(rec.p, target-rec.p), world);
     }
@@ -57,7 +57,7 @@ fn main() {
     // println!("{}", num);
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(Vec3::new(0.2, 0.0, -1.0), 0.5)));
-    world.add_object(Box::new(Sphere::new(Vec3::new(-0.6, 0.3, -2.0), 0.3)));
+    world.add_object(Box::new(Sphere::new(Vec3::new(-0.8, -0.2, -2.0), 0.3)));
     world.add_object(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
     let camera = Camera::new();
 
@@ -87,6 +87,7 @@ fn main() {
                 total = total + color_at(&r, &world);
             }
             let fcolor = total / (SAMPLE_COUNT as f32);
+            let fcolor = Vec3::new(fcolor.x().sqrt(), fcolor.y().sqrt(), fcolor.z().sqrt());
             let color_r = (fcolor.r() * 255.99) as u32;
             let color_g = (fcolor.g() * 255.99) as u32;
             let color_b = (fcolor.b() * 255.99) as u32;
