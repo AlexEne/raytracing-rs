@@ -1,7 +1,7 @@
 use ray::Ray;
 use vec3::Vec3;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,

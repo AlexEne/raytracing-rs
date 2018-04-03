@@ -37,7 +37,7 @@ impl Hittable for Sphere {
                 rec.normal.normalize();
                 return true;
             }
-            let temp = (-b + (b*b - a*c).sqrt()) / a;
+            let ittemp = (-b + (b*b - a*c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 rec.t = temp;
                 rec.p = ray.point_at(temp);

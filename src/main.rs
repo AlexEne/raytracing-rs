@@ -4,6 +4,7 @@ mod vec3;
 mod ray;
 mod hittable;
 mod sphere;
+mod world;
 
 use rand::Rng;
 use rand::distributions::{IndependentSample, Range};
@@ -12,40 +13,31 @@ use std::{thread, time};
 use vec3::Vec3;
 use ray::Ray;
 use sphere::Sphere;
-use hittable::HitRecord;
-use hittable::Hittable;
+use hittable::{HitRecord, Hittable};
+use world::World;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
 
-fn color_at(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let mut n = ray.point_at(t) - Vec3::new(0.0, 0.0, -1.0);
-        n.normalize();
+fn color_at(ray: &Ray, world: &World) -> Vec3 {
+    let mut rec = HitRecord::default();
+    if world.hit(ray, 0.0, 3.0, &mut rec) {
+        let n = rec.normal;
         return 0.5 * Vec3::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
     }
     let t = 0.5 * (ray.dir().y() + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> f32 {
-    let sphere = Sphere::new(*center, radius);
-    let mut hit_record = HitRecord::default();
-    if !sphere.hit(r, -1.0, 2.0, &mut hit_record) {
-        -1.0
-    } else {
-        hit_record.t
-    }
-}
-
 fn main() {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //RGBA
-    let mut rng = rand::thread_rng();
-    let color_range = Range::new(0, 255);
+    // let mut rng = rand::thread_rng();
+    // let color_range = Range::new(0, 255);
     // let num = rand::thread_rng().gen_range(0, 100);
     // println!("{}", num);
-    let a: Vec3 = Vec3::new(0.0, 1.0, 2.0);
+    let mut world = World::default();
+    world.add_object(Box::new(Sphere::new(Vec3::new(0.4, 0.0, -1.0), 0.5)));
+    world.add_object(Box::new(Sphere::new(Vec3::new(-0.6, 0.3, -2.0), 0.3)));
 
     let mut window = Window::new(
         "Raytracing on a plane - ESC to exit",
@@ -66,7 +58,7 @@ fn main() {
                 let u = (x as f32) / (WIDTH as f32);
                 let v = (y as f32) / (HEIGHT as f32);
                 let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical);
-                let fcolor = color_at(&r);
+                let fcolor = color_at(&r, &world);
                 let color_r = (fcolor.r() * 255.99) as u32;
                 let color_g = (fcolor.g() * 255.99) as u32;
                 let color_b = (fcolor.b() * 255.99) as u32;
