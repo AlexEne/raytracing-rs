@@ -11,6 +11,7 @@ use std::any::Any;
 pub enum MaterialHelper {
     Lambertian {albedo: Vec3},
     Metal {albedo: Vec3, fuzz: f32},
+//    Dielectrinc {}
 }
 
 impl Default for MaterialHelper {
