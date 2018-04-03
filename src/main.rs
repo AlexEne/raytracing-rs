@@ -74,10 +74,11 @@ fn main() {
         },
     )));
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(1.2, 0.0, -1.0),
-        0.3,
+        Vec3::new(2.5, 0.0, -2.3),
+        0.5,
         MaterialHelper::Metal {
             albedo: Vec3::new(0.2, 0.2, 0.3),
+            fuzz: 0.4,
         },
     )));
     world.add_object(Box::new(Sphere::new(
@@ -128,6 +129,6 @@ fn main() {
         // Real applications may want to handle this in a different way
         window.update_with_buffer(&buffer).unwrap();
 
-        thread::sleep(time::Duration::from_millis(1000));
+        thread::sleep(time::Duration::from_millis(33));
     }
 }

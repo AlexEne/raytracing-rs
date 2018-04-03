@@ -10,7 +10,7 @@ use std::any::Any;
 #[derive(Copy, Clone)]
 pub enum MaterialHelper {
     Lambertian {albedo: Vec3},
-    Metal {albedo: Vec3},
+    Metal {albedo: Vec3, fuzz: f32},
 }
 
 impl Default for MaterialHelper {
@@ -27,9 +27,9 @@ pub fn scatter(material: &MaterialHelper, ray_in: &Ray, hit: & HitRecord, attenu
             *attenuation = *albedo;
             true
         },
-        &MaterialHelper::Metal {ref albedo} => {
+        &MaterialHelper::Metal {ref albedo, ref fuzz} => {
             let reflected = vec3::reflect(&ray_in.dir(), &hit.normal);
-            *scattered = Ray::new(hit.p, reflected);
+            *scattered = Ray::new(hit.p, reflected + *fuzz*random_point_in_unit_sphere());
             *attenuation = *albedo;
             
             vec3::dot(&scattered.dir(), &hit.normal) > 0.0
