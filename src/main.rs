@@ -4,6 +4,7 @@ mod vec3;
 mod ray;
 mod hittable;
 mod sphere;
+mod camera;
 mod world;
 
 use rand::Rng;
@@ -15,6 +16,7 @@ use ray::Ray;
 use sphere::Sphere;
 use hittable::{HitRecord, Hittable};
 use world::World;
+use camera::Camera;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
@@ -38,6 +40,7 @@ fn main() {
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(Vec3::new(0.4, 0.0, -1.0), 0.5)));
     world.add_object(Box::new(Sphere::new(Vec3::new(-0.6, 0.3, -2.0), 0.3)));
+    let camera = Camera::new();
 
     let mut window = Window::new(
         "Raytracing on a plane - ESC to exit",
@@ -57,7 +60,7 @@ fn main() {
             for x in 0..WIDTH {
                 let u = (x as f32) / (WIDTH as f32);
                 let v = (y as f32) / (HEIGHT as f32);
-                let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical);
+                let r = camera.get_ray(u, v);
                 let fcolor = color_at(&r, &world);
                 let color_r = (fcolor.r() * 255.99) as u32;
                 let color_g = (fcolor.g() * 255.99) as u32;

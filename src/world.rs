@@ -24,7 +24,6 @@ impl Hittable for World {
                 if tmp_rec.t < closest {
                     hit_something = true;
                     closest = tmp_rec.t;
-                    
                     rec.t = tmp_rec.t;
                     rec.p = tmp_rec.p;
                     rec.normal = tmp_rec.normal;
