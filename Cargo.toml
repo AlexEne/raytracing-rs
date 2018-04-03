@@ -1,0 +1,8 @@
+[package]
+name = "raytracing_test"
+version = "0.1.0"
+authors = ["Ene <alexene@amazon.com>"]
+
+[dependencies]
+minifb = "0.10.4"
+rand = "0.4.2"
