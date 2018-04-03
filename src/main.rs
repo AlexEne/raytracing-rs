@@ -1,5 +1,8 @@
 extern crate minifb;
 extern crate rand;
+extern crate rayon;
+
+use rayon::prelude::*;
 mod vec3;
 mod ray;
 mod hittable;
@@ -122,26 +125,30 @@ fn generate_scene(buffer: &mut Vec<u32>) {
 
     let camera = Camera::new();
 
-    //Render the scene
-    for y in 1..HEIGHT {
-        for x in 0..WIDTH {
-            let mut total = Vec3::default();
-            for _ in 0..SAMPLE_COUNT {
-                let rx = rng.gen_range(0.0, 1.0);
-                let ry = rng.gen_range(0.0, 1.0);
-                let u = (x as f32 + rx) / (WIDTH as f32);
-                let v = (y as f32 + ry) / (HEIGHT as f32);
-                let r = camera.get_ray(u, v);
-                total = total + color_at(&r, &world, 0);
-            }
-            let fcolor = total / (SAMPLE_COUNT as f32);
-            let fcolor = Vec3::new(fcolor.x().sqrt(), fcolor.y().sqrt(), fcolor.z().sqrt());
-            let color_r = (fcolor.r() * 255.99) as u32;
-            let color_g = (fcolor.g() * 255.99) as u32;
-            let color_b = (fcolor.b() * 255.99) as u32;
-            buffer[((HEIGHT - y) * WIDTH + x) as usize] = color_r << 16 | color_g << 8 | color_b;
+    let start = time::Instant::now();
+    //Switch from par_iter_mut() to iter_mut() to compare with the single threaded version.
+    buffer.par_iter_mut().enumerate().for_each(|(pos, data)|{
+        let x = pos % WIDTH;
+        let y = HEIGHT - pos / WIDTH;
+        let mut total = Vec3::default();
+        let mut rng = rand::thread_rng();
+        for _ in 0..SAMPLE_COUNT {
+            let rx = rng.gen_range(0.0, 1.0);
+            let ry = rng.gen_range(0.0, 1.0);
+            let u = (x as f32 + rx) / (WIDTH as f32);
+            let v = (y as f32 + ry) / (HEIGHT as f32);
+            let r = camera.get_ray(u, v);
+            total = total + color_at(&r, &world, 0);
         }
-    }
+        let fcolor = total / (SAMPLE_COUNT as f32);
+        let fcolor = Vec3::new(fcolor.x().sqrt(), fcolor.y().sqrt(), fcolor.z().sqrt());
+        let color_r = (fcolor.r() * 255.99) as u32;
+        let color_g = (fcolor.g() * 255.99) as u32;
+        let color_b = (fcolor.b() * 255.99) as u32;
+        *data = color_r << 16 | color_g << 8 | color_b;
+    });
+    let duration = time::Instant::now() - start;
+    println!("Generate took: {:?}", duration);
 }
 
 fn main() {
@@ -157,6 +164,7 @@ fn main() {
     });
 
     generate_scene(&mut buffer);
+
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails.

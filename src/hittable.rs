@@ -10,6 +10,7 @@ pub struct HitRecord {
     pub material: Option<Material>
 }
 
-pub trait Hittable {
+pub trait Hittable : Send + Sync {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec: &mut HitRecord) -> bool;
 }
+
