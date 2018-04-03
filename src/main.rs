@@ -9,7 +9,7 @@ mod world;
 mod material;
 
 use rand::Rng;
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, KeyRepeat, Window, WindowOptions};
 use std::{thread, time};
 use vec3::Vec3;
 use ray::Ray;
@@ -21,7 +21,7 @@ use material::Material;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 100;
+const SAMPLE_COUNT: usize = 50;
 
 fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
@@ -51,20 +51,19 @@ fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     }
 }
 
-fn main() {
-    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //RGBA
+fn generate_scene(buffer: &mut Vec<u32>) {
     let mut rng = rand::thread_rng();
-    
-    // let color_range = Range::new(0, 255);
-    // let num = rand::thread_rng().gen_range(0, 100);
-    // println!("{}", num);
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(
         Vec3::new(0.2, 0.0, -1.0),
         0.5,
-        Material::Lambertian {
-            albedo: Vec3::new(0.8, 0.3, 0.3),
-        },
+        // Material::Lambertian {
+        //     albedo: Vec3::new(0.8, 0.3, 0.3),
+        // },
+        Material::Metal {
+            albedo: Vec3::new(0.8, 0.8, 0.8),
+            fuzz: 0.1,
+        }
     )));
     world.add_object(Box::new(Sphere::new(
         Vec3::new(-0.8, -0.2, -2.0),
@@ -89,10 +88,9 @@ fn main() {
         },
     )));
 
-
     for _ in 0..20 {
         let x = rng.gen_range(-5.0, 5.0);
-        let z = rng.gen_range(-2.0, -0.4);
+        let z = rng.gen_range(-2.0, 0.5);
         let r = rng.gen_range(0.0, 1.0);
         let g = rng.gen_range(0.0, 1.0);
         let b = rng.gen_range(0.0, 1.0);
@@ -111,7 +109,7 @@ fn main() {
         let g = rng.gen_range(0.0, 1.0);
         let b = rng.gen_range(0.0, 1.0);
         let radius = rng.gen_range(0.05, 0.2);
-        let fuzz = rng.gen_range(0.0, 0.4);
+        let fuzz = rng.gen_range(0.0, 0.7);
         world.add_object(Box::new(Sphere::new(
             Vec3::new(x, -0.3, z),
             radius,
@@ -122,17 +120,7 @@ fn main() {
         )));
     }
 
-
     let camera = Camera::new();
-
-    let mut window = Window::new(
-        "Raytracing on a plane - ESC to exit",
-        WIDTH,
-        HEIGHT,
-        WindowOptions::default(),
-    ).unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
 
     //Render the scene
     for y in 1..HEIGHT {
@@ -154,10 +142,29 @@ fn main() {
             buffer[((HEIGHT - y) * WIDTH + x) as usize] = color_r << 16 | color_g << 8 | color_b;
         }
     }
+}
+
+fn main() {
+    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //R..G..B..R..G..B
+    
+    let mut window = Window::new(
+        "Raytracing on a plane - ESC to exit",
+        WIDTH,
+        HEIGHT,
+        WindowOptions::default(),
+    ).unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
+
+    generate_scene(&mut buffer);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails.
         // Real applications may want to handle this in a different way
+        if window.is_key_pressed(Key::Space, KeyRepeat::No) {
+            generate_scene(&mut buffer);
+        }
+
         window.update_with_buffer(&buffer).unwrap();
 
         thread::sleep(time::Duration::from_millis(33));
