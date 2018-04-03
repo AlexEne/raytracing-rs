@@ -2,18 +2,16 @@ use hittable::{Hittable, HitRecord};
 use ray::Ray;
 use vec3::Vec3;
 use vec3;
-use material::{MaterialHelper};
-use std::boxed;
-use std::clone::Clone;
+use material::{Material};
 
 pub struct Sphere {
     center: Vec3,
     radius: f32,
-    material: MaterialHelper
+    material: Material
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32, material: MaterialHelper) -> Sphere {
+    pub fn new(center: Vec3, radius: f32, material: Material) -> Sphere {
         Sphere {
             center: center,
             radius: radius,
@@ -44,7 +42,7 @@ impl Hittable for Sphere {
 
                 return true;
             }
-            let ittemp = (-b + (b*b - a*c).sqrt()) / a;
+            let temp = (-b + (b*b - a*c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 rec.t = temp;
                 rec.p = ray.point_at(temp);

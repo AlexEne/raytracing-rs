@@ -1,12 +1,10 @@
-use hittable::{Hittable, HitRecord};
+use hittable::{HitRecord, Hittable};
 use std::boxed::Box;
 use ray::Ray;
-use material::MaterialHelper;
-use std;
 
 #[derive(Default)]
 pub struct World {
-    objects: Vec<Box<Hittable>>
+    objects: Vec<Box<Hittable>>,
 }
 
 impl World {
@@ -21,7 +19,7 @@ impl Hittable for World {
         let mut closest = tmax;
         for obj in self.objects.iter() {
             let mut tmp_rec = HitRecord::default();
-         
+
             if obj.hit(ray, tmin, tmax, &mut tmp_rec) {
                 if tmp_rec.t < closest {
                     hit_something = true;

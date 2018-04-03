@@ -1,14 +1,13 @@
 use ray::Ray;
 use vec3::Vec3;
-use material::MaterialHelper;
-use std::boxed::Box;
+use material::Material;
 
 #[derive(Default)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f32,
-    pub material: Option<MaterialHelper>
+    pub material: Option<Material>
 }
 
 pub trait Hittable {

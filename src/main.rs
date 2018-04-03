@@ -9,7 +9,6 @@ mod world;
 mod material;
 
 use rand::Rng;
-use rand::distributions::{IndependentSample, Range};
 use minifb::{Key, Window, WindowOptions};
 use std::{thread, time};
 use vec3::Vec3;
@@ -18,7 +17,7 @@ use sphere::Sphere;
 use hittable::{HitRecord, Hittable};
 use world::World;
 use camera::Camera;
-use material::MaterialHelper;
+use material::Material;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
@@ -55,6 +54,7 @@ fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
 fn main() {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //RGBA
     let mut rng = rand::thread_rng();
+    
     // let color_range = Range::new(0, 255);
     // let num = rand::thread_rng().gen_range(0, 100);
     // println!("{}", num);
@@ -62,21 +62,21 @@ fn main() {
     world.add_object(Box::new(Sphere::new(
         Vec3::new(0.2, 0.0, -1.0),
         0.5,
-        MaterialHelper::Lambertian {
+        Material::Lambertian {
             albedo: Vec3::new(0.8, 0.3, 0.3),
         },
     )));
     world.add_object(Box::new(Sphere::new(
         Vec3::new(-0.8, -0.2, -2.0),
         0.3,
-        MaterialHelper::Lambertian {
+        Material::Lambertian {
             albedo: Vec3::new(0.2, 0.4, 0.2),
         },
     )));
     world.add_object(Box::new(Sphere::new(
         Vec3::new(2.5, 0.0, -2.3),
         0.5,
-        MaterialHelper::Metal {
+        Material::Metal {
             albedo: Vec3::new(0.2, 0.2, 0.3),
             fuzz: 0.4,
         },
@@ -84,10 +84,45 @@ fn main() {
     world.add_object(Box::new(Sphere::new(
         Vec3::new(0.0, -100.5, -1.0),
         100.0,
-        MaterialHelper::Lambertian {
+        Material::Lambertian {
             albedo: Vec3::new(0.8, 0.8, 0.2),
         },
     )));
+
+
+    for _ in 0..20 {
+        let x = rng.gen_range(-5.0, 5.0);
+        let z = rng.gen_range(-2.0, -0.4);
+        let r = rng.gen_range(0.0, 1.0);
+        let g = rng.gen_range(0.0, 1.0);
+        let b = rng.gen_range(0.0, 1.0);
+        let radius = rng.gen_range(0.05, 0.2);
+        world.add_object(Box::new(Sphere::new(
+            Vec3::new(x, -0.3, z),
+            radius,
+            Material::Lambertian {
+                albedo: Vec3::new(r, g, b),
+            },
+        )));
+
+        let x = rng.gen_range(-5.0, 5.0);
+        let z = rng.gen_range(-2.0, -0.4);
+        let r = rng.gen_range(0.0, 1.0);
+        let g = rng.gen_range(0.0, 1.0);
+        let b = rng.gen_range(0.0, 1.0);
+        let radius = rng.gen_range(0.05, 0.2);
+        let fuzz = rng.gen_range(0.0, 0.4);
+        world.add_object(Box::new(Sphere::new(
+            Vec3::new(x, -0.3, z),
+            radius,
+            Material::Metal {
+                albedo: Vec3::new(r, g, b),
+                fuzz: fuzz,
+            },
+        )));
+    }
+
+
     let camera = Camera::new();
 
     let mut window = Window::new(
@@ -98,10 +133,6 @@ fn main() {
     ).unwrap_or_else(|e| {
         panic!("{}", e);
     });
-    let origin = Vec3::new(0.0, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, 2.0, 0.0);
-    let horizontal = Vec3::new(4.0, 0.0, 0.0);
-    let lower_left_corner = Vec3::new(-2.0, -1.0, -1.0);
 
     //Render the scene
     for y in 1..HEIGHT {
