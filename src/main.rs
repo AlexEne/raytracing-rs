@@ -3,24 +3,24 @@ extern crate rand;
 extern crate rayon;
 
 use rayon::prelude::*;
-mod vec3;
-mod ray;
-mod hittable;
-mod sphere;
 mod camera;
-mod world;
+mod hittable;
 mod material;
+mod ray;
+mod sphere;
+mod vec3;
+mod world;
 
-use rand::Rng;
+use camera::Camera;
+use hittable::{HitRecord, Hittable};
+use material::Material;
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
-use std::{thread, time};
-use vec3::Vec3;
+use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
-use hittable::{HitRecord, Hittable};
+use std::{thread, time};
+use vec3::Vec3;
 use world::World;
-use camera::Camera;
-use material::Material;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
@@ -82,16 +82,12 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     world.add_object(Box::new(Sphere::new(
         Vec3::new(-1.0, 0.0, -1.0),
         -0.45,
-        Material::Dielectric {
-            ref_idx: 1.5
-        },
+        Material::Dielectric { ref_idx: 1.5 },
     )));
     world.add_object(Box::new(Sphere::new(
         Vec3::new(-1.0, 0.0, -1.0),
         0.5,
-        Material::Dielectric {
-            ref_idx: 1.5
-        },
+        Material::Dielectric { ref_idx: 1.5 },
     )));
 
     for _ in 0..15 {
@@ -126,11 +122,17 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         )));
     }
 
-    let camera = Camera::new();
+    let camera = Camera::new(
+        Vec3::new(-2.0, 2.0, 1.0),
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        90.0,
+        WIDTH as f32 / HEIGHT as f32,
+    );
 
     let start = time::Instant::now();
     //Switch from par_iter_mut() to iter_mut() to compare with the single threaded version.
-    buffer.par_iter_mut().enumerate().for_each(|(pos, data)|{
+    buffer.par_iter_mut().enumerate().for_each(|(pos, data)| {
         let x = pos % WIDTH;
         let y = HEIGHT - pos / WIDTH;
         let mut total = Vec3::default();
@@ -156,7 +158,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
 
 fn main() {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT]; //R..G..B..R..G..B
-    
+
     let mut window = Window::new(
         "Raytracing on a plane - ESC to exit",
         WIDTH,
@@ -167,7 +169,6 @@ fn main() {
     });
 
     generate_scene(&mut buffer);
-
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails.

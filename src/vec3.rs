@@ -31,16 +31,8 @@ impl Vec3 {
         self.data[2]
     }
 
-    pub fn cross(&self, other: &Vec3) -> Vec3 {
-        Vec3 {
-            data: [
-                self.y() * other.z() - self.z() * other.y(),
-                -(self.x() * other.z() - self.z() * other.x()),
-                self.x() * other.y() - self.y() * other.x(),
-            ],
-        }
-    }
-    
+
+
     pub fn normalize(&mut self) {
         let k = 1.0 / self.length();
         self.data[0] = self.data[0] * k;
@@ -160,5 +152,15 @@ impl Neg for Vec3 {
     type Output = Vec3;
     fn neg(self) -> Vec3 {
         Vec3::new(-self.x(), -self.y(), -self.z())
+    }
+}
+
+pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
+    Vec3 {
+        data: [
+            a.y() * b.z() - a.z() * b.y(),
+            -(a.x() * b.z() - a.z() * b.x()),
+            a.x() * b.y() - a.y() * b.x(),
+        ],
     }
 }
