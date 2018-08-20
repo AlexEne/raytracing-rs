@@ -24,7 +24,7 @@ use world::World;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 50;
+const SAMPLE_COUNT: usize = 250;
 
 fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
@@ -122,12 +122,18 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         )));
     }
 
+    let look_from =  Vec3::new(3.0, 3.0, 2.0);
+    let look_at = Vec3::new(0.0, 0.0, -1.0);
+    let dist_to_focus = (look_from - look_at).length();
+    let apperture = 2.0f32;
     let camera = Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
-        Vec3::new(0.0, 0.0, -1.0),
+        look_from,
+        look_at,
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         WIDTH as f32 / HEIGHT as f32,
+        apperture,
+        dist_to_focus
     );
 
     let start = time::Instant::now();
