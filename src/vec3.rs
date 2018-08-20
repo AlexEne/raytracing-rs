@@ -1,5 +1,5 @@
-use std::ops::{Add, Div, Mul, Sub};
 use std::f32;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy, Default)]
 pub struct Vec3 {
@@ -31,8 +31,6 @@ impl Vec3 {
         self.data[2]
     }
 
-
-
     pub fn cross(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             data: [
@@ -42,7 +40,7 @@ impl Vec3 {
             ],
         }
     }
-
+    
     pub fn normalize(&mut self) {
         let k = 1.0 / self.length();
         self.data[0] = self.data[0] * k;
@@ -71,9 +69,9 @@ pub fn refract(&v: &Vec3, &n: &Vec3, ni_over_nt: f32) -> Option<Vec3> {
     let mut uv = v;
     uv.normalize();
     let dt = dot(&uv, &n);
-    let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt*dt);
+    let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt * dt);
     if discriminant > 0.0 {
-        Some(ni_over_nt * (uv - n*dt) - n * discriminant.sqrt())
+        Some(ni_over_nt * (uv - n * dt) - n * discriminant.sqrt())
     } else {
         None
     }
@@ -155,5 +153,12 @@ impl Div<f32> for Vec3 {
         Vec3 {
             data: [self.x() / k, self.y() / k, self.z() / k],
         }
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Vec3;
+    fn neg(self) -> Vec3 {
+        Vec3::new(-self.x(), -self.y(), -self.z())
     }
 }

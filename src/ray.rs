@@ -8,8 +8,6 @@ pub struct Ray {
 
 impl Ray {
     pub fn new(origin: Vec3, dir: Vec3) -> Ray {
-        let mut dir = dir;
-        dir.normalize();
         Ray {
             origin: origin,
             dir: dir

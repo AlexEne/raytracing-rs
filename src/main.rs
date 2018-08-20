@@ -60,23 +60,12 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     world.add_object(Box::new(Sphere::new(
         Vec3::new(0.2, 0.0, -1.0),
         0.5,
-        // Material::Lambertian {
-        //     albedo: Vec3::new(0.8, 0.3, 0.3),
-        // },
-        Material::Metal {
-            albedo: Vec3::new(0.8, 0.8, 0.8),
-            fuzz: 0.1,
-        }
-    )));
-    world.add_object(Box::new(Sphere::new(
-        Vec3::new(-0.8, -0.2, -2.0),
-        0.3,
         Material::Lambertian {
-            albedo: Vec3::new(0.2, 0.4, 0.2),
+            albedo: Vec3::new(0.1, 0.2, 0.5),
         },
     )));
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(2.5, 0.0, -2.3),
+        Vec3::new(1.0, 0.0, -1.0),
         0.5,
         Material::Metal {
             albedo: Vec3::new(0.2, 0.2, 0.3),
@@ -90,8 +79,22 @@ fn generate_scene(buffer: &mut Vec<u32>) {
             albedo: Vec3::new(0.8, 0.8, 0.2),
         },
     )));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        -0.45,
+        Material::Dielectric {
+            ref_idx: 1.5
+        },
+    )));
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Material::Dielectric {
+            ref_idx: 1.5
+        },
+    )));
 
-    for _ in 0..20 {
+    for _ in 0..15 {
         let x = rng.gen_range(-5.0, 5.0);
         let z = rng.gen_range(-2.0, 0.5);
         let r = rng.gen_range(0.0, 1.0);

@@ -36,8 +36,7 @@ impl Hittable for Sphere {
             if temp < t_max && temp > t_min {
                 rec.t = temp;
                 rec.p = ray.point_at(temp);
-                rec.normal = rec.p - self.center;
-                rec.normal.normalize();
+                rec.normal = (rec.p - self.center) / self.radius;
                 rec.material = Some(self.material);
 
                 return true;
@@ -46,8 +45,7 @@ impl Hittable for Sphere {
             if temp < t_max && temp > t_min {
                 rec.t = temp;
                 rec.p = ray.point_at(temp);
-                rec.normal = rec.p - self.center;
-                rec.normal.normalize();
+                rec.normal = (rec.p - self.center) / self.radius;
                 rec.material = Some(self.material);
                 
                 return true;
