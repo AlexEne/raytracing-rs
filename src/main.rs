@@ -58,7 +58,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     let mut rng = rand::thread_rng();
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(0.2, 0.0, -1.0),
+        Vec3::new(0.0, 0.0, -1.0),
         0.5,
         Material::Lambertian {
             albedo: Vec3::new(0.1, 0.2, 0.5),
@@ -68,7 +68,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         Vec3::new(1.0, 0.0, -1.0),
         0.5,
         Material::Metal {
-            albedo: Vec3::new(0.2, 0.2, 0.3),
+            albedo: Vec3::new(0.8, 0.6, 0.2),
             fuzz: 0.4,
         },
     )));
