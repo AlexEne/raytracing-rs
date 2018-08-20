@@ -24,7 +24,7 @@ use world::World;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 250;
+const SAMPLE_COUNT: usize = 50;
 
 fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
@@ -58,74 +58,85 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     let mut rng = rand::thread_rng();
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(0.0, 0.0, -1.0),
-        0.5,
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
         Material::Lambertian {
-            albedo: Vec3::new(0.1, 0.2, 0.5),
+            albedo: Vec3::new(0.5, 0.5, 0.5),
         },
-    )));
-    world.add_object(Box::new(Sphere::new(
-        Vec3::new(1.0, 0.0, -1.0),
-        0.5,
-        Material::Metal {
-            albedo: Vec3::new(0.8, 0.6, 0.2),
-            fuzz: 0.4,
-        },
-    )));
-    world.add_object(Box::new(Sphere::new(
-        Vec3::new(0.0, -100.5, -1.0),
-        100.0,
-        Material::Lambertian {
-            albedo: Vec3::new(0.8, 0.8, 0.2),
-        },
-    )));
-    world.add_object(Box::new(Sphere::new(
-        Vec3::new(-1.0, 0.0, -1.0),
-        -0.45,
-        Material::Dielectric { ref_idx: 1.5 },
-    )));
-    world.add_object(Box::new(Sphere::new(
-        Vec3::new(-1.0, 0.0, -1.0),
-        0.5,
-        Material::Dielectric { ref_idx: 1.5 },
     )));
 
-    for _ in 0..15 {
-        let x = rng.gen_range(-5.0, 5.0);
-        let z = rng.gen_range(-2.0, 0.5);
-        let r = rng.gen_range(0.0, 1.0);
-        let g = rng.gen_range(0.0, 1.0);
-        let b = rng.gen_range(0.0, 1.0);
-        let radius = rng.gen_range(0.05, 0.2);
-        world.add_object(Box::new(Sphere::new(
-            Vec3::new(x, -0.3, z),
-            radius,
-            Material::Lambertian {
-                albedo: Vec3::new(r, g, b),
-            },
-        )));
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rng.gen_range(0.0, 1.0);
 
-        let x = rng.gen_range(-5.0, 5.0);
-        let z = rng.gen_range(-2.0, -0.4);
-        let r = rng.gen_range(0.0, 1.0);
-        let g = rng.gen_range(0.0, 1.0);
-        let b = rng.gen_range(0.0, 1.0);
-        let radius = rng.gen_range(0.05, 0.2);
-        let fuzz = rng.gen_range(0.0, 0.7);
-        world.add_object(Box::new(Sphere::new(
-            Vec3::new(x, -0.3, z),
-            radius,
-            Material::Metal {
-                albedo: Vec3::new(r, g, b),
-                fuzz: fuzz,
-            },
-        )));
+            let center = Vec3::new(
+                a as f32 + 0.9 * rng.gen_range(0.0, 1.0),
+                0.2,
+                b as f32 + 0.9 * rng.gen_range(0.0, 1.0),
+            );
+
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    let r = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    let g = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    let b = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    world.add_object(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Material::Lambertian {
+                            albedo: Vec3::new(r, g, b),
+                        },
+                    )));
+                } else if choose_mat < 0.95 {
+                    let r = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    let g = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    let b = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    world.add_object(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Material::Metal {
+                            albedo: Vec3::new(r, g, b),
+                            fuzz: 0.5 * rng.gen_range(0.0, 1.0),
+                        },
+                    )));
+                } else {
+                    world.add_object(Box::new(Sphere::new(
+                        center,
+                        0.2,
+                        Material::Dielectric { ref_idx: 1.5 },
+                    )));
+                }
+            }
+        }
     }
 
-    let look_from =  Vec3::new(3.0, 3.0, 2.0);
-    let look_at = Vec3::new(0.0, 0.0, -1.0);
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(0.0, 1.0, 0.0),
+        1.0,
+        Material::Dielectric { ref_idx: 1.5 },
+    )));
+
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(-4.0, 1.0, 0.0),
+        1.0,
+        Material::Lambertian {
+            albedo: Vec3::new(0.4, 0.2, 0.1), 
+        },
+    )));
+
+    world.add_object(Box::new(Sphere::new(
+        Vec3::new(4.0, 1.0, 0.0),
+        1.0,
+        Material::Metal {
+            albedo: Vec3::new(0.7, 0.6, 0.5),
+            fuzz: 0.0
+        },
+    )));
+
+    let look_from = Vec3::new(12.0, 1.5, 3.0);
+    let look_at = Vec3::new(1.0, 0.7, -1.0);
     let dist_to_focus = (look_from - look_at).length();
-    let apperture = 2.0f32;
+    let apperture = 0.1;
     let camera = Camera::new(
         look_from,
         look_at,
@@ -133,7 +144,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         20.0,
         WIDTH as f32 / HEIGHT as f32,
         apperture,
-        dist_to_focus
+        dist_to_focus,
     );
 
     let start = time::Instant::now();
