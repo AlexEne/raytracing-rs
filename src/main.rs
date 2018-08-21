@@ -24,11 +24,11 @@ use world::World;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 50;
+const SAMPLE_COUNT: usize = 2;
 
 fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
-    if world.hit(ray, 0.0001, std::f32::MAX, &mut rec) {
+    if world.hit(ray, 0.001, std::f32::MAX, &mut rec) {
         let mut scattered = Ray::new(Vec3::default(), Vec3::default());
         let mut attenuation = Vec3::default();
         let rec_c = HitRecord {
@@ -43,7 +43,7 @@ fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
             {
                 return attenuation * color_at(&scattered, world, depth + 1);
             } else {
-                return Vec3::default();
+                return Vec3::new(0.0, 0.0, 0.0);
             }
         } else {
             panic!("No material wtf!");
@@ -71,7 +71,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
 
             let center = Vec3::new(
                 a as f32 + 0.9 * rng.gen_range(0.0, 1.0),
-                0.2,
+                0.2 + 0.2 * rng.gen_range(0.0, 1.0),
                 b as f32 + 0.9 * rng.gen_range(0.0, 1.0),
             );
 
@@ -133,7 +133,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         },
     )));
 
-    let look_from = Vec3::new(12.0, 1.5, 3.0);
+    let look_from = Vec3::new(12.0, 1.0, 3.0);
     let look_at = Vec3::new(1.0, 0.7, -1.0);
     let apperture = 0.0;
     let dist_to_focus = 10.0;

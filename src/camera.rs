@@ -23,9 +23,10 @@ pub const PI: f32 = std::f64::consts::PI as f32;
 
 fn random_in_unit_disk() -> Vec3 {
     let mut rng = rand::thread_rng();
+
     loop {
-        let p = 2.0 * Vec3::new(rng.gen_range(0.0, 1.0), rng.gen_range(0.0, 1.0), 0.0)
-            - Vec3::new(1.0, 1.0, 0.0);
+        let p = 2.0 * Vec3::new(rng.gen_range(0.0, 1.0), rng.gen_range(0.0, 1.0), 0.0) - Vec3::new(1.0, 1.0, 0.0);
+        
         if vec3::dot(&p, &p) < 1.0 {
             return p;
         }
