@@ -135,16 +135,12 @@ fn generate_scene(buffer: &mut Vec<u32>) {
 
     let look_from = Vec3::new(12.0, 1.5, 3.0);
     let look_at = Vec3::new(1.0, 0.7, -1.0);
-    let dist_to_focus = (look_from - look_at).length();
-    let apperture = 0.1;
     let camera = Camera::new(
         look_from,
         look_at,
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         WIDTH as f32 / HEIGHT as f32,
-        apperture,
-        dist_to_focus,
     );
 
     let start = time::Instant::now();
