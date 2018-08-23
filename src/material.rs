@@ -28,19 +28,19 @@ pub fn scatter(
     scattered: &mut Ray,
 ) -> bool {
     match material {
-        &Material::Lambertian { ref albedo } => {
+        &Material::Lambertian { albedo } => {
             let target = hit.p + hit.normal + random_point_in_unit_sphere();
             *scattered = Ray::new(hit.p, target - hit.p);
-            *attenuation = *albedo;
+            *attenuation = albedo;
             true
         }
         &Material::Metal {
-            ref albedo,
-            ref fuzz,
+            albedo,
+            fuzz,
         } => {
-            let reflected = vec3::reflect(&ray_in.dir(), &hit.normal);
-            *scattered = Ray::new(hit.p, reflected + *fuzz * random_point_in_unit_sphere());
-            *attenuation = *albedo;
+            let reflected = vec3::reflect(&ray_in.dir().normalize(), &hit.normal);
+            *scattered = Ray::new(hit.p, reflected + fuzz * random_point_in_unit_sphere());
+            *attenuation = albedo;
 
             vec3::dot(&scattered.dir(), &hit.normal) > 0.0
         }
@@ -63,7 +63,7 @@ pub fn scatter(
                 cosine = -vec3::dot(&ray_in.dir(), &hit.normal) / ray_in.dir().length();
             }
             let refracted = vec3::refract(&ray_in.dir(), &outward_normal, ni_over_nt);
-            if let Some(refracted) = refracted {
+            if refracted.is_some() {
                 reflect_prob = schlick(cosine, ref_idx);
             } else {
                 reflect_prob = 1.0;

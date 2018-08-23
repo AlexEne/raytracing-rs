@@ -32,12 +32,13 @@ impl Vec3 {
     }
 
 
-
-    pub fn normalize(&mut self) {
+    pub fn normalize(&self) -> Vec3 {
         let k = 1.0 / self.length();
-        self.data[0] = self.data[0] * k;
-        self.data[1] = self.data[1] * k;
-        self.data[2] = self.data[2] * k;
+        Vec3::new(
+            self.data[0] * k,
+            self.data[1] * k,
+            self.data[2] * k,
+        )
     }
 
     pub fn length(&self) -> f32 {
@@ -58,8 +59,7 @@ pub fn reflect(v: &Vec3, &n: &Vec3) -> Vec3 {
 }
 
 pub fn refract(&v: &Vec3, &n: &Vec3, ni_over_nt: f32) -> Option<Vec3> {
-    let mut uv = v;
-    uv.normalize();
+    let uv = v.normalize();
     let dt = dot(&uv, &n);
     let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt * dt);
     if discriminant > 0.0 {
