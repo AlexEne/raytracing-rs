@@ -38,7 +38,7 @@ pub fn scatter(
             albedo,
             fuzz,
         } => {
-            let reflected = vec3::reflect(&ray_in.dir().normalize(), &hit.normal);
+            let reflected = vec3::reflect(&ray_in.dir(), &hit.normal);
             *scattered = Ray::new(hit.p, reflected + fuzz * random_point_in_unit_sphere());
             *attenuation = albedo;
 
