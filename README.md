@@ -6,4 +6,4 @@ Powered by coffee and plane snacks.
 Build and run with:
 ```cargo run --release```
 
-![alt text](https://github.com/AlexEne/raytracing-rs/blob/master/screenshots/12%20part%204.png)
+![alt text](https://github.com/AlexEne/raytracing-rs/blob/master/screenshots/14%20final_image.PNG)
