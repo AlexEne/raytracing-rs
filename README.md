@@ -1,7 +1,6 @@
 # raytracing-rs
 
-Done after "Raytracing in one weekend" book on a 11h plane ride to GDC.  
-Powered by coffee and plane snacks.
+Done after "Raytracing in one weekend" book.
 
 Build and run with:
 ```cargo run --release```
