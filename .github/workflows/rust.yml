@@ -18,5 +18,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: install_dependencies
+      run: curl https://sh.rustup.rs -sSf | sh -s -- -y; 
     - name: build
       run: export PATH="$HOME/.cargo/bin:$PATH"; cargo build
