@@ -34,10 +34,7 @@ pub fn scatter(
             *attenuation = albedo;
             true
         }
-        &Material::Metal {
-            albedo,
-            fuzz,
-        } => {
+        &Material::Metal { albedo, fuzz } => {
             let reflected = vec3::reflect(&ray_in.dir(), &hit.normal);
             *scattered = Ray::new(hit.p, reflected + fuzz * random_point_in_unit_sphere());
             *attenuation = albedo;
@@ -50,13 +47,13 @@ pub fn scatter(
             let mut ni_over_nt = 0.0;
             let mut cosine = 0.0;
             let mut reflect_prob = 1.0;
-            
+
             *attenuation = Vec3::new(1.0, 1.0, 1.0);
 
             if vec3::dot(&ray_in.dir(), &hit.normal) > 0.0 {
                 outward_normal = -hit.normal;
                 ni_over_nt = ref_idx;
-                cosine = ref_idx * vec3::dot(&ray_in.dir(), &hit.normal)/ray_in.dir().length();
+                cosine = ref_idx * vec3::dot(&ray_in.dir(), &hit.normal) / ray_in.dir().length();
             } else {
                 outward_normal = hit.normal;
                 ni_over_nt = 1.0 / ref_idx;

@@ -120,7 +120,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         Vec3::new(-4.0, 1.0, 0.0),
         1.0,
         Material::Lambertian {
-            albedo: Vec3::new(0.4, 0.2, 0.1), 
+            albedo: Vec3::new(0.4, 0.2, 0.1),
         },
     )));
 
@@ -129,7 +129,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         1.0,
         Material::Metal {
             albedo: Vec3::new(0.7, 0.6, 0.5),
-            fuzz: 0.0
+            fuzz: 0.0,
         },
     )));
 
@@ -146,7 +146,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         apperture,
         dist_to_focus,
         0.0,
-        1.0
+        1.0,
     );
 
     let start = time::Instant::now();
@@ -183,7 +183,8 @@ fn main() {
         WIDTH,
         HEIGHT,
         WindowOptions::default(),
-    ).unwrap_or_else(|e| {
+    )
+    .unwrap_or_else(|e| {
         panic!("{}", e);
     });
 
@@ -196,7 +197,7 @@ fn main() {
             generate_scene(&mut buffer);
         }
 
-        window.update_with_buffer(&buffer).unwrap();
+        window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
 
         thread::sleep(time::Duration::from_millis(33));
     }

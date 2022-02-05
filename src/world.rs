@@ -1,6 +1,6 @@
 use hittable::{HitRecord, Hittable};
-use std::boxed::Box;
 use ray::Ray;
+use std::boxed::Box;
 
 #[derive(Default)]
 pub struct World {
