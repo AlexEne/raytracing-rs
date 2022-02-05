@@ -2,11 +2,13 @@
 name = "raytracing_test"
 version = "0.1.0"
 authors = ["Ene <alexene@amazon.com>"]
+edition = "2021"
 
 [dependencies]
 minifb = "0.20"
 rand = "0.4.2"
 rayon = "1.5"
+glam = "0.20"
 
 [profile.release]
 incremental = true

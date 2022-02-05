@@ -1,17 +1,16 @@
-use hittable::{HitRecord, Hittable};
-use material::Material;
-use ray::Ray;
-use vec3;
-use vec3::Vec3;
+use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
+use crate::ray::Ray;
+use glam::Vec3A;
 
 pub struct Sphere {
-    center: Vec3,
+    center: Vec3A,
     radius: f32,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32, material: Material) -> Sphere {
+    pub fn new(center: Vec3A, radius: f32, material: Material) -> Sphere {
         Sphere {
             center: center,
             radius: radius,
@@ -24,9 +23,9 @@ impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
         let oc = ray.origin() - self.center;
 
-        let a = vec3::dot(&ray.dir(), &ray.dir());
-        let b = vec3::dot(&oc, &ray.dir());
-        let c = vec3::dot(&oc, &oc) - self.radius * self.radius;
+        let a = Vec3A::dot(ray.dir(), ray.dir());
+        let b = Vec3A::dot(oc, ray.dir());
+        let c = Vec3A::dot(oc, oc) - self.radius * self.radius;
 
         let discriminant = b * b - a * c;
 

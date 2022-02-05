@@ -4,14 +4,15 @@ extern crate rayon;
 
 use rayon::prelude::*;
 mod camera;
+mod helpers;
 mod hittable;
 mod material;
 mod ray;
 mod sphere;
-mod vec3;
 mod world;
 
 use camera::Camera;
+use glam::Vec3A;
 use hittable::{HitRecord, Hittable};
 use material::Material;
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
@@ -19,18 +20,17 @@ use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
 use std::{thread, time};
-use vec3::Vec3;
 use world::World;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
 const SAMPLE_COUNT: usize = 2;
 
-fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
+fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3A {
     let mut rec = HitRecord::default();
     if world.hit(ray, 0.001, std::f32::MAX, &mut rec) {
-        let mut scattered = Ray::new(Vec3::default(), Vec3::default());
-        let mut attenuation = Vec3::default();
+        let mut scattered = Ray::new(Vec3A::default(), Vec3A::default());
+        let mut attenuation = Vec3A::default();
         let rec_c = HitRecord {
             p: rec.p,
             normal: rec.normal,
@@ -43,14 +43,14 @@ fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3 {
             {
                 return attenuation * color_at(&scattered, world, depth + 1);
             } else {
-                return Vec3::new(0.0, 0.0, 0.0);
+                return Vec3A::new(0.0, 0.0, 0.0);
             }
         } else {
             panic!("No material wtf!");
         }
     } else {
-        let t = 0.5 * (ray.dir().y() + 1.0);
-        (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+        let t = 0.5 * (ray.dir().y + 1.0);
+        (1.0 - t) * Vec3A::new(1.0, 1.0, 1.0) + t * Vec3A::new(0.5, 0.7, 1.0)
     }
 }
 
@@ -58,44 +58,44 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     let mut rng = rand::thread_rng();
     let mut world = World::default();
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(0.0, -1000.0, 0.0),
+        Vec3A::new(0.0, -1000.0, 0.0),
         1000.0,
         Material::Lambertian {
-            albedo: Vec3::new(0.5, 0.5, 0.5),
+            albedo: Vec3A::new(0.5, 0.5, 0.5),
         },
     )));
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rng.gen_range(0.0, 1.0);
+            let choose_mat = rng.gen_range::<f32>(0.0, 1.0);
 
-            let center = Vec3::new(
+            let center = Vec3A::new(
                 a as f32 + 0.9 * rng.gen_range(0.0, 1.0),
-                0.2 + 0.2 * rng.gen_range(0.0, 1.0),
+                0.2 + 0.2 * rng.gen_range::<f32>(0.0, 1.0),
                 b as f32 + 0.9 * rng.gen_range(0.0, 1.0),
             );
 
-            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+            if (center - Vec3A::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
-                    let r = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
-                    let g = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
-                    let b = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    let r: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    let g: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
+                    let b: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
                     world.add_object(Box::new(Sphere::new(
                         center,
                         0.2,
                         Material::Lambertian {
-                            albedo: Vec3::new(r, g, b),
+                            albedo: Vec3A::new(r, g, b),
                         },
                     )));
                 } else if choose_mat < 0.95 {
-                    let r = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
-                    let g = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
-                    let b = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    let r: f32 = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    let g: f32 = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
+                    let b: f32 = 0.5 * (1.0 + rng.gen_range(0.0, 1.0));
                     world.add_object(Box::new(Sphere::new(
                         center,
                         0.2,
                         Material::Metal {
-                            albedo: Vec3::new(r, g, b),
+                            albedo: Vec3A::new(r, g, b),
                             fuzz: 0.5 * rng.gen_range(0.0, 1.0),
                         },
                     )));
@@ -111,36 +111,36 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     }
 
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(0.0, 1.0, 0.0),
+        Vec3A::new(0.0, 1.0, 0.0),
         1.0,
         Material::Dielectric { ref_idx: 1.5 },
     )));
 
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(-4.0, 1.0, 0.0),
+        Vec3A::new(-4.0, 1.0, 0.0),
         1.0,
         Material::Lambertian {
-            albedo: Vec3::new(0.4, 0.2, 0.1),
+            albedo: Vec3A::new(0.4, 0.2, 0.1),
         },
     )));
 
     world.add_object(Box::new(Sphere::new(
-        Vec3::new(4.0, 1.0, 0.0),
+        Vec3A::new(4.0, 1.0, 0.0),
         1.0,
         Material::Metal {
-            albedo: Vec3::new(0.7, 0.6, 0.5),
+            albedo: Vec3A::new(0.7, 0.6, 0.5),
             fuzz: 0.0,
         },
     )));
 
-    let look_from = Vec3::new(12.0, 1.0, 3.0);
-    let look_at = Vec3::new(1.0, 0.7, -1.0);
+    let look_from = Vec3A::new(12.0, 1.0, 3.0);
+    let look_at = Vec3A::new(1.0, 0.7, -1.0);
     let apperture = 0.0;
     let dist_to_focus = 10.0;
     let camera = Camera::new(
         look_from,
         look_at,
-        Vec3::new(0.0, 1.0, 0.0),
+        Vec3A::new(0.0, 1.0, 0.0),
         20.0,
         WIDTH as f32 / HEIGHT as f32,
         apperture,
@@ -154,7 +154,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     buffer.par_iter_mut().enumerate().for_each(|(pos, data)| {
         let x = pos % WIDTH;
         let y = HEIGHT - pos / WIDTH;
-        let mut total = Vec3::default();
+        let mut total = Vec3A::default();
         let mut rng = rand::thread_rng();
         for _ in 0..SAMPLE_COUNT {
             let rx = rng.gen_range(0.0, 1.0);
@@ -165,10 +165,10 @@ fn generate_scene(buffer: &mut Vec<u32>) {
             total = total + color_at(&r, &world, 0);
         }
         let fcolor = total / (SAMPLE_COUNT as f32);
-        let fcolor = Vec3::new(fcolor.x().sqrt(), fcolor.y().sqrt(), fcolor.z().sqrt());
-        let color_r = (fcolor.r() * 255.99) as u32;
-        let color_g = (fcolor.g() * 255.99) as u32;
-        let color_b = (fcolor.b() * 255.99) as u32;
+        let fcolor = Vec3A::new(fcolor.x.sqrt(), fcolor.y.sqrt(), fcolor.z.sqrt());
+        let color_r = (fcolor.x * 255.99) as u32;
+        let color_g = (fcolor.y * 255.99) as u32;
+        let color_b = (fcolor.z * 255.99) as u32;
         *data = color_r << 16 | color_g << 8 | color_b;
     });
     let duration = time::Instant::now() - start;

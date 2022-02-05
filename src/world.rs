@@ -1,14 +1,14 @@
-use hittable::{HitRecord, Hittable};
-use ray::Ray;
+use crate::hittable::{HitRecord, Hittable};
+use crate::ray::Ray;
 use std::boxed::Box;
 
 #[derive(Default)]
 pub struct World {
-    objects: Vec<Box<Hittable>>,
+    objects: Vec<Box<dyn Hittable>>,
 }
 
 impl World {
-    pub fn add_object(&mut self, obj: Box<Hittable>) {
+    pub fn add_object(&mut self, obj: Box<dyn Hittable>) {
         self.objects.push(obj);
     }
 }

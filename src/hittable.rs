@@ -1,13 +1,23 @@
-use material::Material;
-use ray::Ray;
-use vec3::Vec3;
+use crate::material::Material;
+use crate::ray::Ray;
+use glam::Vec3A;
 
-#[derive(Default)]
 pub struct HitRecord {
-    pub p: Vec3,
-    pub normal: Vec3,
+    pub p: Vec3A,
+    pub normal: Vec3A,
     pub t: f32,
     pub material: Option<Material>,
+}
+
+impl Default for HitRecord {
+    fn default() -> Self {
+        HitRecord {
+            p: Vec3A::ZERO,
+            normal: Vec3A::ONE,
+            t: 0.0,
+            material: None,
+        }
+    }
 }
 
 pub trait Hittable: Send + Sync {
