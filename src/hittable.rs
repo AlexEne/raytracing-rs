@@ -10,7 +10,7 @@ pub struct HitRecord {
     pub material: Option<Material>,
 }
 
-pub trait Hittable: Send + Sync {
+pub trait Hittable: Send + Sync + std::fmt::Debug {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
     fn bounding_box(&self, t0: f32, t1: f32) -> AABB;
 }

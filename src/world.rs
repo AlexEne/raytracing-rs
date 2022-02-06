@@ -6,7 +6,7 @@ use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
 use std::boxed::Box;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct World {
     objects: Vec<Box<dyn Hittable>>,
 }

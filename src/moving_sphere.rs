@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use glam::Vec3A;
 
+#[derive(Debug)]
 pub struct MovingSphere {
     center0: Vec3A,
     center1: Vec3A,

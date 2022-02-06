@@ -5,7 +5,7 @@ use glam::Vec3A;
 use rand;
 use rand::Rng;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Material {
     Lambertian { albedo: Vec3A },
     Metal { albedo: Vec3A, fuzz: f32 },

@@ -2,6 +2,7 @@ extern crate minifb;
 extern crate rand;
 extern crate rayon;
 
+use bvh::Bvh;
 use rayon::prelude::*;
 mod aabb;
 mod bvh;
@@ -31,8 +32,8 @@ const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
 const SAMPLE_COUNT: usize = 5;
 
-fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3A {
-    if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
+fn color_at(ray: &Ray, bvh: &Bvh, depth: u32) -> Vec3A {
+    if let Some(rec) = bvh.hit(ray, 0.001, std::f32::MAX) {
         let mut scattered = Ray::new(Vec3A::default(), Vec3A::default(), ray.time());
         let mut attenuation = Vec3A::default();
         let rec_c = HitRecord {
@@ -45,7 +46,7 @@ fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3A {
             if depth < 50
                 && material::scatter(&material, ray, &rec_c, &mut attenuation, &mut scattered)
             {
-                return attenuation * color_at(&scattered, world, depth + 1);
+                return attenuation * color_at(&scattered, bvh, depth + 1);
             } else {
                 return Vec3A::new(0.0, 0.0, 0.0);
             }
@@ -157,6 +158,10 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         1.0,
     );
 
+    let bvh = world.generate_bvh(0.0, 1.0);
+    // println!("Bvh: {:#?}", bvh);
+    // panic!("WTF");
+
     let start = time::Instant::now();
     //Switch from par_iter_mut() to iter_mut() to compare with the single threaded version.
     buffer.par_iter_mut().enumerate().for_each(|(pos, data)| {
@@ -170,7 +175,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
             let u = (x as f32 + rx) / (WIDTH as f32);
             let v = (y as f32 + ry) / (HEIGHT as f32);
             let r = camera.get_ray(u, v);
-            total = total + color_at(&r, &world, 0);
+            total = total + color_at(&r, &bvh, 0);
         }
         let fcolor = total / (SAMPLE_COUNT as f32);
         let fcolor = Vec3A::new(fcolor.x.sqrt(), fcolor.y.sqrt(), fcolor.z.sqrt());
