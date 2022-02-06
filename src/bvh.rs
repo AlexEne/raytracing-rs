@@ -89,13 +89,13 @@ impl Hittable for Bvh {
             match &self.contents {
                 BvhContents::Node { left, right } => {
                     let hit_left = left.hit(ray, tmin, tmax);
-                    
+
                     let mut tmax = tmax;
                     if let Some(hr) = &hit_left {
                         tmax = hr.t;
                     }
                     let hit_right = right.hit(ray, tmin, tmax);
-                    
+
                     match (hit_left, hit_right) {
                         (h, None) | (None, h) => h,
                         (Some(hl), Some(hr)) => {

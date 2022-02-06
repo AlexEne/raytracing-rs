@@ -30,7 +30,7 @@ use crate::moving_sphere::MovingSphere;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 5;
+const SAMPLE_COUNT: usize = 30;
 
 fn color_at(ray: &Ray, bvh: &Bvh, depth: u32) -> Vec3A {
     if let Some(rec) = bvh.hit(ray, 0.001, std::f32::MAX) {
@@ -163,27 +163,36 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     // panic!("WTF");
 
     let start = time::Instant::now();
+    let chunk_size = WIDTH * 2;
+
     //Switch from par_iter_mut() to iter_mut() to compare with the single threaded version.
-    buffer.par_iter_mut().enumerate().for_each(|(pos, data)| {
-        let x = pos % WIDTH;
-        let y = HEIGHT - pos / WIDTH;
-        let mut total = Vec3A::default();
-        let mut rng = rand::thread_rng();
-        for _ in 0..SAMPLE_COUNT {
-            let rx = rng.gen_range(0.0, 1.0);
-            let ry = rng.gen_range(0.0, 1.0);
-            let u = (x as f32 + rx) / (WIDTH as f32);
-            let v = (y as f32 + ry) / (HEIGHT as f32);
-            let r = camera.get_ray(u, v);
-            total = total + color_at(&r, &bvh, 0);
-        }
-        let fcolor = total / (SAMPLE_COUNT as f32);
-        let fcolor = Vec3A::new(fcolor.x.sqrt(), fcolor.y.sqrt(), fcolor.z.sqrt());
-        let color_r = (fcolor.x * 255.99) as u32;
-        let color_g = (fcolor.y * 255.99) as u32;
-        let color_b = (fcolor.z * 255.99) as u32;
-        *data = color_r << 16 | color_g << 8 | color_b;
-    });
+    buffer
+        .par_iter_mut()
+        .chunks(chunk_size)
+        .enumerate()
+        .for_each(|(pos, row_data)| {
+            for (local_pos, data) in row_data.into_iter().enumerate() {
+                let pos = pos * chunk_size + local_pos;
+                let x = pos % WIDTH;
+                let y = HEIGHT - pos / WIDTH;
+                let mut total = Vec3A::default();
+                let mut rng = rand::thread_rng();
+                for _ in 0..SAMPLE_COUNT {
+                    let rx = rng.gen_range(0.0, 1.0);
+                    let ry = rng.gen_range(0.0, 1.0);
+                    let u = (x as f32 + rx) / (WIDTH as f32);
+                    let v = (y as f32 + ry) / (HEIGHT as f32);
+                    let r = camera.get_ray(u, v);
+                    total = total + color_at(&r, &bvh, 0);
+                }
+                let fcolor = total / (SAMPLE_COUNT as f32);
+                let fcolor = Vec3A::new(fcolor.x.sqrt(), fcolor.y.sqrt(), fcolor.z.sqrt());
+                let color_r = (fcolor.x * 255.99) as u32;
+                let color_g = (fcolor.y * 255.99) as u32;
+                let color_b = (fcolor.z * 255.99) as u32;
+                *data = color_r << 16 | color_g << 8 | color_b;
+            }
+        });
     let duration = time::Instant::now() - start;
     println!("Generate took: {:?}", duration);
 }
