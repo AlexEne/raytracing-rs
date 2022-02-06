@@ -3,6 +3,8 @@ extern crate rand;
 extern crate rayon;
 
 use rayon::prelude::*;
+mod aabb;
+mod bvh;
 mod camera;
 mod helpers;
 mod hittable;
@@ -17,19 +19,21 @@ use hittable::{HitRecord, Hittable};
 use material::Material;
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 use rand::Rng;
+mod moving_sphere;
 use ray::Ray;
 use sphere::Sphere;
 use std::{thread, time};
 use world::World;
 
+use crate::moving_sphere::MovingSphere;
+
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 2;
+const SAMPLE_COUNT: usize = 5;
 
 fn color_at(ray: &Ray, world: &World, depth: u32) -> Vec3A {
-    let mut rec = HitRecord::default();
-    if world.hit(ray, 0.001, std::f32::MAX, &mut rec) {
-        let mut scattered = Ray::new(Vec3A::default(), Vec3A::default());
+    if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
+        let mut scattered = Ray::new(Vec3A::default(), Vec3A::default(), ray.time());
         let mut attenuation = Vec3A::default();
         let rec_c = HitRecord {
             p: rec.p,
@@ -80,8 +84,12 @@ fn generate_scene(buffer: &mut Vec<u32>) {
                     let r: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
                     let g: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
                     let b: f32 = rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0);
-                    world.add_object(Box::new(Sphere::new(
+                    let center2 = center + 0.4 * Vec3A::new(0.0, rng.gen_range(0.0, 0.5), 0.0);
+                    world.add_object(Box::new(MovingSphere::new(
                         center,
+                        center2,
+                        0.0,
+                        1.0,
                         0.2,
                         Material::Lambertian {
                             albedo: Vec3A::new(r, g, b),

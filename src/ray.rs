@@ -4,13 +4,15 @@ use glam::Vec3A;
 pub struct Ray {
     origin: Vec3A,
     dir: Vec3A,
+    time: f32,
 }
 
 impl Ray {
-    pub fn new(origin: Vec3A, dir: Vec3A) -> Ray {
+    pub fn new(origin: Vec3A, dir: Vec3A, time: f32) -> Ray {
         Ray {
-            origin: origin,
+            origin,
             dir: dir.normalize(),
+            time,
         }
     }
 
@@ -20,6 +22,10 @@ impl Ray {
 
     pub fn dir(&self) -> Vec3A {
         self.dir
+    }
+
+    pub fn time(&self) -> f32 {
+        self.time
     }
 
     pub fn point_at(&self, t: f32) -> Vec3A {

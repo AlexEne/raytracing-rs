@@ -30,13 +30,17 @@ pub fn scatter(
     match material {
         &Material::Lambertian { albedo } => {
             let target = hit.p + hit.normal + random_point_in_unit_sphere();
-            *scattered = Ray::new(hit.p, target - hit.p);
+            *scattered = Ray::new(hit.p, target - hit.p, ray_in.time());
             *attenuation = albedo;
             true
         }
         &Material::Metal { albedo, fuzz } => {
             let reflected = reflect(ray_in.dir(), hit.normal);
-            *scattered = Ray::new(hit.p, reflected + fuzz * random_point_in_unit_sphere());
+            *scattered = Ray::new(
+                hit.p,
+                reflected + fuzz * random_point_in_unit_sphere(),
+                ray_in.time(),
+            );
             *attenuation = albedo;
 
             Vec3A::dot(scattered.dir(), hit.normal) > 0.0
@@ -70,9 +74,9 @@ pub fn scatter(
             let random_number = rng.gen_range(0.0, 1.0);
 
             if random_number < reflect_prob {
-                *scattered = Ray::new(hit.p, reflected);
+                *scattered = Ray::new(hit.p, reflected, ray_in.time());
             } else {
-                *scattered = Ray::new(hit.p, refracted.unwrap());
+                *scattered = Ray::new(hit.p, refracted.unwrap(), ray_in.time());
             }
 
             return true;

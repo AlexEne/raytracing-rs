@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
 use glam::Vec3A;
@@ -9,17 +10,7 @@ pub struct HitRecord {
     pub material: Option<Material>,
 }
 
-impl Default for HitRecord {
-    fn default() -> Self {
-        HitRecord {
-            p: Vec3A::ZERO,
-            normal: Vec3A::ONE,
-            t: 0.0,
-            material: None,
-        }
-    }
-}
-
 pub trait Hittable: Send + Sync {
-    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
+    fn bounding_box(&self, t0: f32, t1: f32) -> AABB;
 }
