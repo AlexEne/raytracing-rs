@@ -12,6 +12,7 @@ mod hittable;
 mod material;
 mod ray;
 mod sphere;
+mod texture;
 mod world;
 
 use camera::Camera;
@@ -23,14 +24,17 @@ use rand::Rng;
 mod moving_sphere;
 use ray::Ray;
 use sphere::Sphere;
-use std::{thread, time};
+use std::{sync::Arc, thread, time};
 use world::World;
 
-use crate::moving_sphere::MovingSphere;
+use crate::{
+    moving_sphere::MovingSphere,
+    texture::{CheckerTexture, SolidColor, Texture},
+};
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 320;
-const SAMPLE_COUNT: usize = 30;
+const SAMPLE_COUNT: usize = 5;
 
 fn color_at(ray: &Ray, bvh: &Bvh, depth: u32) -> Vec3A {
     if let Some(rec) = bvh.hit(ray, 0.001, std::f32::MAX) {
@@ -40,6 +44,8 @@ fn color_at(ray: &Ray, bvh: &Bvh, depth: u32) -> Vec3A {
             p: rec.p,
             normal: rec.normal,
             t: rec.t,
+            u: rec.u,
+            v: rec.v,
             material: None,
         };
         if let Some(material) = rec.material {
@@ -66,7 +72,10 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         Vec3A::new(0.0, -1000.0, 0.0),
         1000.0,
         Material::Lambertian {
-            albedo: Vec3A::new(0.5, 0.5, 0.5),
+            texture: Arc::new(Box::new(CheckerTexture::new(
+                Vec3A::new(0.2, 0.3, 0.1),
+                Vec3A::new(0.9, 0.9, 0.9),
+            ))),
         },
     )));
 
@@ -93,7 +102,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
                         1.0,
                         0.2,
                         Material::Lambertian {
-                            albedo: Vec3A::new(r, g, b),
+                            texture: Arc::new(Box::new(SolidColor::new(Vec3A::new(r, g, b)))),
                         },
                     )));
                 } else if choose_mat < 0.95 {
@@ -119,6 +128,9 @@ fn generate_scene(buffer: &mut Vec<u32>) {
         }
     }
 
+    let texture: Arc<Box<dyn Texture>> =
+        Arc::new(Box::new(SolidColor::new(Vec3A::new(0.4, 0.2, 0.1))));
+
     world.add_object(Box::new(Sphere::new(
         Vec3A::new(0.0, 1.0, 0.0),
         1.0,
@@ -128,9 +140,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     world.add_object(Box::new(Sphere::new(
         Vec3A::new(-4.0, 1.0, 0.0),
         1.0,
-        Material::Lambertian {
-            albedo: Vec3A::new(0.4, 0.2, 0.1),
-        },
+        Material::Lambertian { texture },
     )));
 
     world.add_object(Box::new(Sphere::new(
@@ -163,7 +173,7 @@ fn generate_scene(buffer: &mut Vec<u32>) {
     // panic!("WTF");
 
     let start = time::Instant::now();
-    let chunk_size = WIDTH * 2;
+    let chunk_size = WIDTH;
 
     //Switch from par_iter_mut() to iter_mut() to compare with the single threaded version.
     buffer

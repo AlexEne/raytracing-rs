@@ -2,6 +2,7 @@ use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 use glam::Vec3A;
 
 #[derive(Debug)]
@@ -58,22 +59,28 @@ impl Hittable for MovingSphere {
             let temp = (-b - (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
+                let (u, v) = Sphere::get_uv(&p);
                 return Some(HitRecord {
                     t: temp,
                     p,
                     normal: (p - self.center(ray.time())) / self.radius,
-                    material: Some(self.material),
+                    u,
+                    v,
+                    material: Some(self.material.clone()),
                 });
             }
 
             let temp = (-b + (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
+                let (u, v) = Sphere::get_uv(&p);
                 return Some(HitRecord {
                     t: temp,
                     p,
+                    u,
+                    v,
                     normal: (p - self.center(ray.time())) / self.radius,
-                    material: Some(self.material),
+                    material: Some(self.material.clone()),
                 });
             }
         }

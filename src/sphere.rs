@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
@@ -19,6 +21,16 @@ impl Sphere {
             material: material,
         }
     }
+
+    pub fn get_uv(p: &Vec3A) -> (f32, f32) {
+        let theta = f32::acos(-p.y);
+        let phi = f32::atan2(-p.z, p.x) + PI;
+
+        let u = phi / (2.0 * PI);
+        let v = theta / PI;
+
+        (u, v)
+    }
 }
 
 impl Hittable for Sphere {
@@ -35,22 +47,27 @@ impl Hittable for Sphere {
             let temp = (-b - (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
+                let (u, v) = Sphere::get_uv(&p);
                 return Some(HitRecord {
                     t: temp,
                     p,
+                    u,
+                    v,
                     normal: (p - self.center) / self.radius,
-                    material: Some(self.material),
+                    material: Some(self.material.clone()),
                 });
             }
             let temp = (-b + (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
-
+                let (u, v) = Sphere::get_uv(&p);
                 return Some(HitRecord {
                     t: temp,
                     p,
+                    u,
+                    v,
                     normal: (p - self.center) / self.radius,
-                    material: Some(self.material),
+                    material: Some(self.material.clone()),
                 });
             }
         }
